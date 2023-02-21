@@ -54,18 +54,22 @@ class PayCheckoutTests: XCTestCase {
             shippingDiscount: shipping,
             shippingAddress:  address,
             shippingRate:     rate,
+            availableShippingRates: [rate].compactMap { $0 },
             currencyCode:     "CAD",
             totalDuties:      9.95,
             subtotalPrice:    30.0,
             needsShipping:    true,
             totalTax:         15.0,
-            paymentDue:       35.0
+            paymentDue:       35.0,
+            total:            35.0,
+            isStorePickup:    true
         )
         
         XCTAssertEqual(checkout.id,                       "123")
         XCTAssertEqual(checkout.lineItems.count,          2)
         XCTAssertEqual(checkout.shippingAddress!.city,    address.city)
         XCTAssertEqual(checkout.shippingRate!.handle,     rate.handle)
+        XCTAssertEqual(checkout.availableShippingRates?.count,  1)
         XCTAssertEqual(checkout.giftCards!.first!.amount, 5.00)
         XCTAssertEqual(checkout.discount!.amount,         20.0)
         XCTAssertEqual(checkout.shippingDiscount!.amount, 10.0)
@@ -75,6 +79,7 @@ class PayCheckoutTests: XCTestCase {
         XCTAssertEqual(checkout.needsShipping,            true)
         XCTAssertEqual(checkout.totalTax,                 15.0)
         XCTAssertEqual(checkout.paymentDue,               35.0)
+        XCTAssertEqual(checkout.total,               35.0)
     }
     
     // ----------------------------------

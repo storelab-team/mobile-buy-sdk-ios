@@ -42,17 +42,20 @@ public struct PayCheckout {
     public let lineItems:        [PayLineItem]
     public let shippingAddress:  PayAddress?
     public let shippingRate:     PayShippingRate?
-
+    public let isStorePickup:    Bool
+    public let availableShippingRates:     [PayShippingRate]?
+    
     public let currencyCode:     String
     public let totalDuties:      Decimal?
     public let subtotalPrice:    Decimal
     public let totalTax:         Decimal
     public let paymentDue:       Decimal
+    public let total:            Decimal
 
     // ----------------------------------
     //  MARK: - Init -
     //
-    public init(id: String, lineItems: [PayLineItem], giftCards: [PayGiftCard]?, discount: PayDiscount?, shippingDiscount: PayDiscount?, shippingAddress: PayAddress?, shippingRate: PayShippingRate?, currencyCode: String, totalDuties: Decimal?, subtotalPrice: Decimal, needsShipping: Bool, totalTax: Decimal, paymentDue: Decimal) {
+    public init(id: String, lineItems: [PayLineItem], giftCards: [PayGiftCard]?, discount: PayDiscount?, shippingDiscount: PayDiscount?, shippingAddress: PayAddress?, shippingRate: PayShippingRate?, availableShippingRates: [PayShippingRate]?, currencyCode: String, totalDuties: Decimal?, subtotalPrice: Decimal, needsShipping: Bool, totalTax: Decimal, paymentDue: Decimal, total: Decimal, isStorePickup: Bool) {
 
         self.id               = id
         self.lineItems        = lineItems
@@ -62,6 +65,7 @@ public struct PayCheckout {
         self.giftCards        = giftCards
         self.discount         = discount
         self.shippingDiscount = shippingDiscount
+        self.availableShippingRates = availableShippingRates
         
         self.currencyCode     = currencyCode
         self.totalDuties      = totalDuties
@@ -71,6 +75,8 @@ public struct PayCheckout {
 
         self.hasLineItems     = !lineItems.isEmpty
         self.needsShipping    = needsShipping
+        self.total            = total
+        self.isStorePickup    = isStorePickup
     }
 }
 
