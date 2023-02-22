@@ -191,12 +191,12 @@ public class PaySession: NSObject {
         request.currencyCode                  = currency.currencyCode
         request.merchantIdentifier            = merchantID
         request.shippingContact               = shippingContact
-        request.shippingType                  = checkout.isStorePickup ? .storePickup : .shipping
+        request.shippingType                  = checkout.needsShipping ? .shipping : .storePickup
         if #available(iOS 15.0, *) {
-            request.shippingContactEditingMode = checkout.isStorePickup ? .storePickup : .enabled
+            request.shippingContactEditingMode = checkout.needsShipping ? .enabled : .storePickup
         }
-        request.requiredBillingContactFields  = [.phoneNumber, .name, .postalAddress]
-        request.requiredShippingContactFields = checkout.needsShipping ? [.phoneNumber, .name, .postalAddress, .phoneNumber, .emailAddress] : []
+        request.requiredBillingContactFields  = [.name, .postalAddress, .emailAddress]
+        request.requiredShippingContactFields = [.name, .postalAddress, .emailAddress]
         if let shippingRates = checkout.availableShippingRates {
             self.shippingRates = shippingRates
         }
