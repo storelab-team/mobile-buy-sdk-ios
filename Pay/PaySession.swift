@@ -239,8 +239,8 @@ extension PaySession: PKPaymentAuthorizationControllerDelegate {
 
         var shippingRate: PayShippingRate?
 
-        if self.checkout.needsShipping {
-            shippingRate = self.shippingRates.shippingRateFor(payment.shippingMethod!)
+        if self.checkout.needsShipping, let method = payment.shippingMethod {
+            shippingRate = self.shippingRates.shippingRateFor(method)
         }
 
         /* -----------------------------------------------
