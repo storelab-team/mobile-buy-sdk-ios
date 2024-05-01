@@ -1,5 +1,5 @@
 //
-//  MenuItemType.swift
+//  DeliveryAddressValidationStrategy.swift
 //  Buy
 //
 //  Created by Shopify.
@@ -27,43 +27,16 @@
 import Foundation
 
 extension Storefront {
-	/// A menu item type. 
-	public enum MenuItemType: String {
-		/// An article link. 
-		case article = "ARTICLE"
+	/// Defines the types of available validation strategies for delivery 
+	/// addresses. 
+	public enum DeliveryAddressValidationStrategy: String {
+		/// Only the country code is validated. 
+		case countryCodeOnly = "COUNTRY_CODE_ONLY"
 
-		/// A blog link. 
-		case blog = "BLOG"
-
-		/// A catalog link. 
-		case catalog = "CATALOG"
-
-		/// A collection link. 
-		case collection = "COLLECTION"
-
-		/// A collection link. 
-		case collections = "COLLECTIONS"
-
-		/// A frontpage link. 
-		case frontpage = "FRONTPAGE"
-
-		/// An http link. 
-		case http = "HTTP"
-
-		/// A metaobject page link. 
-		case metaobject = "METAOBJECT"
-
-		/// A page link. 
-		case page = "PAGE"
-
-		/// A product link. 
-		case product = "PRODUCT"
-
-		/// A search link. 
-		case search = "SEARCH"
-
-		/// A shop policy link. 
-		case shopPolicy = "SHOP_POLICY"
+		/// Strict validation is performed, i.e. all fields in the address are 
+		/// validated according to Shopify's checkout rules. If the address fails 
+		/// validation, the cart will not be updated. 
+		case strict = "STRICT"
 
 		case unknownValue = ""
 	}

@@ -1,5 +1,5 @@
 //
-//  MenuItemType.swift
+//  FilterPresentation.swift
 //  Buy
 //
 //  Created by Shopify.
@@ -27,43 +27,17 @@
 import Foundation
 
 extension Storefront {
-	/// A menu item type. 
-	public enum MenuItemType: String {
-		/// An article link. 
-		case article = "ARTICLE"
+	/// Defines how to present the filter values, specifies the presentation of the 
+	/// filter. 
+	public enum FilterPresentation: String {
+		/// Image presentation, filter values display an image. 
+		case image = "IMAGE"
 
-		/// A blog link. 
-		case blog = "BLOG"
+		/// Swatch presentation, filter values display color or image patterns. 
+		case swatch = "SWATCH"
 
-		/// A catalog link. 
-		case catalog = "CATALOG"
-
-		/// A collection link. 
-		case collection = "COLLECTION"
-
-		/// A collection link. 
-		case collections = "COLLECTIONS"
-
-		/// A frontpage link. 
-		case frontpage = "FRONTPAGE"
-
-		/// An http link. 
-		case http = "HTTP"
-
-		/// A metaobject page link. 
-		case metaobject = "METAOBJECT"
-
-		/// A page link. 
-		case page = "PAGE"
-
-		/// A product link. 
-		case product = "PRODUCT"
-
-		/// A search link. 
-		case search = "SEARCH"
-
-		/// A shop policy link. 
-		case shopPolicy = "SHOP_POLICY"
+		/// Text presentation, no additional visual display for filter values. 
+		case text = "TEXT"
 
 		case unknownValue = ""
 	}

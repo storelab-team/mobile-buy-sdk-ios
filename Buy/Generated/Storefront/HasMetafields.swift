@@ -43,18 +43,20 @@ extension Storefront {
 		/// Returns a metafield found by namespace and key. 
 		///
 		/// - parameters:
-		///     - namespace: A container for a set of metafields.
+		///     - namespace: The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
 		///     - key: The identifier for the metafield.
 		///
 		@discardableResult
-		open func metafield(alias: String? = nil, namespace: String, key: String, _ subfields: (MetafieldQuery) -> Void) -> HasMetafieldsQuery {
+		open func metafield(alias: String? = nil, namespace: String? = nil, key: String, _ subfields: (MetafieldQuery) -> Void) -> HasMetafieldsQuery {
 			var args: [String] = []
-
-			args.append("namespace:\(GraphQL.quoteString(input: namespace))")
 
 			args.append("key:\(GraphQL.quoteString(input: key))")
 
-			let argsString = "(\(args.joined(separator: ",")))"
+			if let namespace = namespace {
+				args.append("namespace:\(GraphQL.quoteString(input: namespace))")
+			}
+
+			let argsString: String? = args.isEmpty ? nil : "(\(args.joined(separator: ",")))"
 
 			let subquery = MetafieldQuery()
 			subfields(subquery)
@@ -68,6 +70,8 @@ extension Storefront {
 		///
 		/// - parameters:
 		///     - identifiers: The list of metafields to retrieve by namespace and key.
+		///        
+		///        The input must not contain more than `250` values.
 		///
 		@discardableResult
 		open func metafields(alias: String? = nil, identifiers: [HasMetafieldsIdentifier], _ subfields: (MetafieldQuery) -> Void) -> HasMetafieldsQuery {
@@ -126,6 +130,26 @@ extension Storefront {
 			let subquery = CollectionQuery()
 			subfields(subquery)
 			addInlineFragment(on: "Collection", subfields: subquery)
+			return self
+		}
+
+		/// Represents information about the metafields associated to the specified 
+		/// resource. 
+		@discardableResult
+		open func onCompany(subfields: (CompanyQuery) -> Void) -> HasMetafieldsQuery {
+			let subquery = CompanyQuery()
+			subfields(subquery)
+			addInlineFragment(on: "Company", subfields: subquery)
+			return self
+		}
+
+		/// Represents information about the metafields associated to the specified 
+		/// resource. 
+		@discardableResult
+		open func onCompanyLocation(subfields: (CompanyLocationQuery) -> Void) -> HasMetafieldsQuery {
+			let subquery = CompanyLocationQuery()
+			subfields(subquery)
+			addInlineFragment(on: "CompanyLocation", subfields: subquery)
 			return self
 		}
 
@@ -252,6 +276,10 @@ extension Storefront {
 				case "Cart": return try Cart.init(fields: fields)
 
 				case "Collection": return try Collection.init(fields: fields)
+
+				case "Company": return try Company.init(fields: fields)
+
+				case "CompanyLocation": return try CompanyLocation.init(fields: fields)
 
 				case "Customer": return try Customer.init(fields: fields)
 

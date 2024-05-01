@@ -1,5 +1,5 @@
 //
-//  Market.swift
+//  Company.swift
 //  Buy
 //
 //  Created by Shopify.
@@ -27,23 +27,30 @@
 import Foundation
 
 extension Storefront {
-	/// A group of one or more regions of the world that a merchant is targeting 
-	/// for sales. To learn more about markets, refer to [the Shopify Markets 
-	/// conceptual overview](/docs/apps/markets). 
-	open class MarketQuery: GraphQL.AbstractQuery, GraphQLQuery {
-		public typealias Response = Market
+	/// Represents information about a company which is also a customer of the 
+	/// shop. 
+	open class CompanyQuery: GraphQL.AbstractQuery, GraphQLQuery {
+		public typealias Response = Company
 
-		/// A human-readable unique string for the market automatically generated from 
-		/// its title. 
+		/// The date and time ([ISO 8601 
+		/// format](http://en.wikipedia.org/wiki/ISO_8601)) at which the company was 
+		/// created in Shopify. 
 		@discardableResult
-		open func handle(alias: String? = nil) -> MarketQuery {
-			addField(field: "handle", aliasSuffix: alias)
+		open func createdAt(alias: String? = nil) -> CompanyQuery {
+			addField(field: "createdAt", aliasSuffix: alias)
+			return self
+		}
+
+		/// A unique externally-supplied ID for the company. 
+		@discardableResult
+		open func externalId(alias: String? = nil) -> CompanyQuery {
+			addField(field: "externalId", aliasSuffix: alias)
 			return self
 		}
 
 		/// A globally-unique ID. 
 		@discardableResult
-		open func id(alias: String? = nil) -> MarketQuery {
+		open func id(alias: String? = nil) -> CompanyQuery {
 			addField(field: "id", aliasSuffix: alias)
 			return self
 		}
@@ -55,7 +62,7 @@ extension Storefront {
 		///     - key: The identifier for the metafield.
 		///
 		@discardableResult
-		open func metafield(alias: String? = nil, namespace: String? = nil, key: String, _ subfields: (MetafieldQuery) -> Void) -> MarketQuery {
+		open func metafield(alias: String? = nil, namespace: String? = nil, key: String, _ subfields: (MetafieldQuery) -> Void) -> CompanyQuery {
 			var args: [String] = []
 
 			args.append("key:\(GraphQL.quoteString(input: key))")
@@ -82,7 +89,7 @@ extension Storefront {
 		///        The input must not contain more than `250` values.
 		///
 		@discardableResult
-		open func metafields(alias: String? = nil, identifiers: [HasMetafieldsIdentifier], _ subfields: (MetafieldQuery) -> Void) -> MarketQuery {
+		open func metafields(alias: String? = nil, identifiers: [HasMetafieldsIdentifier], _ subfields: (MetafieldQuery) -> Void) -> CompanyQuery {
 			var args: [String] = []
 
 			args.append("identifiers:[\(identifiers.map{ "\($0.serialize())" }.joined(separator: ","))]")
@@ -95,59 +102,103 @@ extension Storefront {
 			addField(field: "metafields", aliasSuffix: alias, args: argsString, subfields: subquery)
 			return self
 		}
+
+		/// The name of the company. 
+		@discardableResult
+		open func name(alias: String? = nil) -> CompanyQuery {
+			addField(field: "name", aliasSuffix: alias)
+			return self
+		}
+
+		/// The date and time ([ISO 8601 
+		/// format](http://en.wikipedia.org/wiki/ISO_8601)) at which the company was 
+		/// last modified. 
+		@discardableResult
+		open func updatedAt(alias: String? = nil) -> CompanyQuery {
+			addField(field: "updatedAt", aliasSuffix: alias)
+			return self
+		}
 	}
 
-	/// A group of one or more regions of the world that a merchant is targeting 
-	/// for sales. To learn more about markets, refer to [the Shopify Markets 
-	/// conceptual overview](/docs/apps/markets). 
-	open class Market: GraphQL.AbstractResponse, GraphQLObject, HasMetafields, MetafieldParentResource, Node {
-		public typealias Query = MarketQuery
+	/// Represents information about a company which is also a customer of the 
+	/// shop. 
+	open class Company: GraphQL.AbstractResponse, GraphQLObject, HasMetafields, MetafieldParentResource, Node {
+		public typealias Query = CompanyQuery
 
 		internal override func deserializeValue(fieldName: String, value: Any) throws -> Any? {
 			let fieldValue = value
 			switch fieldName {
-				case "handle":
+				case "createdAt":
 				guard let value = value as? String else {
-					throw SchemaViolationError(type: Market.self, field: fieldName, value: fieldValue)
+					throw SchemaViolationError(type: Company.self, field: fieldName, value: fieldValue)
+				}
+				return GraphQL.iso8601DateParser.date(from: value)!
+
+				case "externalId":
+				if value is NSNull { return nil }
+				guard let value = value as? String else {
+					throw SchemaViolationError(type: Company.self, field: fieldName, value: fieldValue)
 				}
 				return value
 
 				case "id":
 				guard let value = value as? String else {
-					throw SchemaViolationError(type: Market.self, field: fieldName, value: fieldValue)
+					throw SchemaViolationError(type: Company.self, field: fieldName, value: fieldValue)
 				}
 				return GraphQL.ID(rawValue: value)
 
 				case "metafield":
 				if value is NSNull { return nil }
 				guard let value = value as? [String: Any] else {
-					throw SchemaViolationError(type: Market.self, field: fieldName, value: fieldValue)
+					throw SchemaViolationError(type: Company.self, field: fieldName, value: fieldValue)
 				}
 				return try Metafield(fields: value)
 
 				case "metafields":
 				guard let value = value as? [Any] else {
-					throw SchemaViolationError(type: Market.self, field: fieldName, value: fieldValue)
+					throw SchemaViolationError(type: Company.self, field: fieldName, value: fieldValue)
 				}
 				return try value.map { if $0 is NSNull { return nil }
 				guard let value = $0 as? [String: Any] else {
-					throw SchemaViolationError(type: Market.self, field: fieldName, value: fieldValue)
+					throw SchemaViolationError(type: Company.self, field: fieldName, value: fieldValue)
 				}
 				return try Metafield(fields: value) } as [Any?]
 
+				case "name":
+				guard let value = value as? String else {
+					throw SchemaViolationError(type: Company.self, field: fieldName, value: fieldValue)
+				}
+				return value
+
+				case "updatedAt":
+				guard let value = value as? String else {
+					throw SchemaViolationError(type: Company.self, field: fieldName, value: fieldValue)
+				}
+				return GraphQL.iso8601DateParser.date(from: value)!
+
 				default:
-				throw SchemaViolationError(type: Market.self, field: fieldName, value: fieldValue)
+				throw SchemaViolationError(type: Company.self, field: fieldName, value: fieldValue)
 			}
 		}
 
-		/// A human-readable unique string for the market automatically generated from 
-		/// its title. 
-		open var handle: String {
-			return internalGetHandle()
+		/// The date and time ([ISO 8601 
+		/// format](http://en.wikipedia.org/wiki/ISO_8601)) at which the company was 
+		/// created in Shopify. 
+		open var createdAt: Date {
+			return internalGetCreatedAt()
 		}
 
-		func internalGetHandle(alias: String? = nil) -> String {
-			return field(field: "handle", aliasSuffix: alias) as! String
+		func internalGetCreatedAt(alias: String? = nil) -> Date {
+			return field(field: "createdAt", aliasSuffix: alias) as! Date
+		}
+
+		/// A unique externally-supplied ID for the company. 
+		open var externalId: String? {
+			return internalGetExternalId()
+		}
+
+		func internalGetExternalId(alias: String? = nil) -> String? {
+			return field(field: "externalId", aliasSuffix: alias) as! String?
 		}
 
 		/// A globally-unique ID. 
@@ -184,6 +235,26 @@ extension Storefront {
 
 		func internalGetMetafields(alias: String? = nil) -> [Storefront.Metafield?] {
 			return field(field: "metafields", aliasSuffix: alias) as! [Storefront.Metafield?]
+		}
+
+		/// The name of the company. 
+		open var name: String {
+			return internalGetName()
+		}
+
+		func internalGetName(alias: String? = nil) -> String {
+			return field(field: "name", aliasSuffix: alias) as! String
+		}
+
+		/// The date and time ([ISO 8601 
+		/// format](http://en.wikipedia.org/wiki/ISO_8601)) at which the company was 
+		/// last modified. 
+		open var updatedAt: Date {
+			return internalGetUpdatedAt()
+		}
+
+		func internalGetUpdatedAt(alias: String? = nil) -> Date {
+			return field(field: "updatedAt", aliasSuffix: alias) as! Date
 		}
 
 		internal override func childResponseObjectMap() -> [GraphQL.AbstractResponse]  {

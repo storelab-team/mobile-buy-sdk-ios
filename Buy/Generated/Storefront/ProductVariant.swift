@@ -98,18 +98,20 @@ extension Storefront {
 		/// Returns a metafield found by namespace and key. 
 		///
 		/// - parameters:
-		///     - namespace: A container for a set of metafields.
+		///     - namespace: The container the metafield belongs to. If omitted, the app-reserved namespace will be used.
 		///     - key: The identifier for the metafield.
 		///
 		@discardableResult
-		open func metafield(alias: String? = nil, namespace: String, key: String, _ subfields: (MetafieldQuery) -> Void) -> ProductVariantQuery {
+		open func metafield(alias: String? = nil, namespace: String? = nil, key: String, _ subfields: (MetafieldQuery) -> Void) -> ProductVariantQuery {
 			var args: [String] = []
-
-			args.append("namespace:\(GraphQL.quoteString(input: namespace))")
 
 			args.append("key:\(GraphQL.quoteString(input: key))")
 
-			let argsString = "(\(args.joined(separator: ",")))"
+			if let namespace = namespace {
+				args.append("namespace:\(GraphQL.quoteString(input: namespace))")
+			}
+
+			let argsString: String? = args.isEmpty ? nil : "(\(args.joined(separator: ",")))"
 
 			let subquery = MetafieldQuery()
 			subfields(subquery)
@@ -123,6 +125,8 @@ extension Storefront {
 		///
 		/// - parameters:
 		///     - identifiers: The list of metafields to retrieve by namespace and key.
+		///        
+		///        The input must not contain more than `250` values.
 		///
 		@discardableResult
 		open func metafields(alias: String? = nil, identifiers: [HasMetafieldsIdentifier], _ subfields: (MetafieldQuery) -> Void) -> ProductVariantQuery {
@@ -174,6 +178,53 @@ extension Storefront {
 		@discardableResult
 		open func quantityAvailable(alias: String? = nil) -> ProductVariantQuery {
 			addField(field: "quantityAvailable", aliasSuffix: alias)
+			return self
+		}
+
+		/// A list of quantity breaks for the product variant. 
+		///
+		/// - parameters:
+		///     - first: Returns up to the first `n` elements from the list.
+		///     - after: Returns the elements that come after the specified cursor.
+		///     - last: Returns up to the last `n` elements from the list.
+		///     - before: Returns the elements that come before the specified cursor.
+		///
+		@discardableResult
+		open func quantityPriceBreaks(alias: String? = nil, first: Int32? = nil, after: String? = nil, last: Int32? = nil, before: String? = nil, _ subfields: (QuantityPriceBreakConnectionQuery) -> Void) -> ProductVariantQuery {
+			var args: [String] = []
+
+			if let first = first {
+				args.append("first:\(first)")
+			}
+
+			if let after = after {
+				args.append("after:\(GraphQL.quoteString(input: after))")
+			}
+
+			if let last = last {
+				args.append("last:\(last)")
+			}
+
+			if let before = before {
+				args.append("before:\(GraphQL.quoteString(input: before))")
+			}
+
+			let argsString: String? = args.isEmpty ? nil : "(\(args.joined(separator: ",")))"
+
+			let subquery = QuantityPriceBreakConnectionQuery()
+			subfields(subquery)
+
+			addField(field: "quantityPriceBreaks", aliasSuffix: alias, args: argsString, subfields: subquery)
+			return self
+		}
+
+		/// The quantity rule for the product variant in a given context. 
+		@discardableResult
+		open func quantityRule(alias: String? = nil, _ subfields: (QuantityRuleQuery) -> Void) -> ProductVariantQuery {
+			let subquery = QuantityRuleQuery()
+			subfields(subquery)
+
+			addField(field: "quantityRule", aliasSuffix: alias, subfields: subquery)
 			return self
 		}
 
@@ -249,16 +300,20 @@ extension Storefront {
 		/// The in-store pickup availability of this variant by location. 
 		///
 		/// - parameters:
+		///     - near: Used to sort results based on proximity to the provided location.
 		///     - first: Returns up to the first `n` elements from the list.
 		///     - after: Returns the elements that come after the specified cursor.
 		///     - last: Returns up to the last `n` elements from the list.
 		///     - before: Returns the elements that come before the specified cursor.
 		///     - reverse: Reverse the order of the underlying list.
-		///     - near: Used to sort results based on proximity to the provided location.
 		///
 		@discardableResult
-		open func storeAvailability(alias: String? = nil, first: Int32? = nil, after: String? = nil, last: Int32? = nil, before: String? = nil, reverse: Bool? = nil, near: GeoCoordinateInput? = nil, _ subfields: (StoreAvailabilityConnectionQuery) -> Void) -> ProductVariantQuery {
+		open func storeAvailability(alias: String? = nil, near: GeoCoordinateInput? = nil, first: Int32? = nil, after: String? = nil, last: Int32? = nil, before: String? = nil, reverse: Bool? = nil, _ subfields: (StoreAvailabilityConnectionQuery) -> Void) -> ProductVariantQuery {
 			var args: [String] = []
+
+			if let near = near {
+				args.append("near:\(near.serialize())")
+			}
 
 			if let first = first {
 				args.append("first:\(first)")
@@ -280,16 +335,19 @@ extension Storefront {
 				args.append("reverse:\(reverse)")
 			}
 
-			if let near = near {
-				args.append("near:\(near.serialize())")
-			}
-
 			let argsString: String? = args.isEmpty ? nil : "(\(args.joined(separator: ",")))"
 
 			let subquery = StoreAvailabilityConnectionQuery()
 			subfields(subquery)
 
 			addField(field: "storeAvailability", aliasSuffix: alias, args: argsString, subfields: subquery)
+			return self
+		}
+
+		/// Whether tax is charged when the product variant is sold. 
+		@discardableResult
+		open func taxable(alias: String? = nil) -> ProductVariantQuery {
+			addField(field: "taxable", aliasSuffix: alias)
 			return self
 		}
 
@@ -432,6 +490,18 @@ extension Storefront {
 				}
 				return Int32(value)
 
+				case "quantityPriceBreaks":
+				guard let value = value as? [String: Any] else {
+					throw SchemaViolationError(type: ProductVariant.self, field: fieldName, value: fieldValue)
+				}
+				return try QuantityPriceBreakConnection(fields: value)
+
+				case "quantityRule":
+				guard let value = value as? [String: Any] else {
+					throw SchemaViolationError(type: ProductVariant.self, field: fieldName, value: fieldValue)
+				}
+				return try QuantityRule(fields: value)
+
 				case "requiresShipping":
 				guard let value = value as? Bool else {
 					throw SchemaViolationError(type: ProductVariant.self, field: fieldName, value: fieldValue)
@@ -462,6 +532,12 @@ extension Storefront {
 					throw SchemaViolationError(type: ProductVariant.self, field: fieldName, value: fieldValue)
 				}
 				return try StoreAvailabilityConnection(fields: value)
+
+				case "taxable":
+				guard let value = value as? Bool else {
+					throw SchemaViolationError(type: ProductVariant.self, field: fieldName, value: fieldValue)
+				}
+				return value
 
 				case "title":
 				guard let value = value as? String else {
@@ -633,6 +709,28 @@ extension Storefront {
 			return field(field: "quantityAvailable", aliasSuffix: alias) as! Int32?
 		}
 
+		/// A list of quantity breaks for the product variant. 
+		open var quantityPriceBreaks: Storefront.QuantityPriceBreakConnection {
+			return internalGetQuantityPriceBreaks()
+		}
+
+		open func aliasedQuantityPriceBreaks(alias: String) -> Storefront.QuantityPriceBreakConnection {
+			return internalGetQuantityPriceBreaks(alias: alias)
+		}
+
+		func internalGetQuantityPriceBreaks(alias: String? = nil) -> Storefront.QuantityPriceBreakConnection {
+			return field(field: "quantityPriceBreaks", aliasSuffix: alias) as! Storefront.QuantityPriceBreakConnection
+		}
+
+		/// The quantity rule for the product variant in a given context. 
+		open var quantityRule: Storefront.QuantityRule {
+			return internalGetQuantityRule()
+		}
+
+		func internalGetQuantityRule(alias: String? = nil) -> Storefront.QuantityRule {
+			return field(field: "quantityRule", aliasSuffix: alias) as! Storefront.QuantityRule
+		}
+
 		/// Whether a customer needs to provide a shipping address when placing an 
 		/// order for the product variant. 
 		open var requiresShipping: Bool {
@@ -687,6 +785,15 @@ extension Storefront {
 
 		func internalGetStoreAvailability(alias: String? = nil) -> Storefront.StoreAvailabilityConnection {
 			return field(field: "storeAvailability", aliasSuffix: alias) as! Storefront.StoreAvailabilityConnection
+		}
+
+		/// Whether tax is charged when the product variant is sold. 
+		open var taxable: Bool {
+			return internalGetTaxable()
+		}
+
+		func internalGetTaxable(alias: String? = nil) -> Bool {
+			return field(field: "taxable", aliasSuffix: alias) as! Bool
 		}
 
 		/// The product variant’s title. 
@@ -782,6 +889,14 @@ extension Storefront {
 					case "product":
 					response.append(internalGetProduct())
 					response.append(contentsOf: internalGetProduct().childResponseObjectMap())
+
+					case "quantityPriceBreaks":
+					response.append(internalGetQuantityPriceBreaks())
+					response.append(contentsOf: internalGetQuantityPriceBreaks().childResponseObjectMap())
+
+					case "quantityRule":
+					response.append(internalGetQuantityRule())
+					response.append(contentsOf: internalGetQuantityRule().childResponseObjectMap())
 
 					case "selectedOptions":
 					internalGetSelectedOptions().forEach {

@@ -61,17 +61,27 @@ extension Storefront {
 			return self
 		}
 
-		/// The email address of the buyer that is interacting with the cart. 
+		/// The email address of the buyer that's interacting with the cart. 
 		@discardableResult
 		open func email(alias: String? = nil) -> CartBuyerIdentityQuery {
 			addField(field: "email", aliasSuffix: alias)
 			return self
 		}
 
-		/// The phone number of the buyer that is interacting with the cart. 
+		/// The phone number of the buyer that's interacting with the cart. 
 		@discardableResult
 		open func phone(alias: String? = nil) -> CartBuyerIdentityQuery {
 			addField(field: "phone", aliasSuffix: alias)
+			return self
+		}
+
+		/// The purchasing company associated with the cart. 
+		@discardableResult
+		open func purchasingCompany(alias: String? = nil, _ subfields: (PurchasingCompanyQuery) -> Void) -> CartBuyerIdentityQuery {
+			let subquery = PurchasingCompanyQuery()
+			subfields(subquery)
+
+			addField(field: "purchasingCompany", aliasSuffix: alias, subfields: subquery)
 			return self
 		}
 
@@ -126,6 +136,13 @@ extension Storefront {
 				}
 				return value
 
+				case "purchasingCompany":
+				if value is NSNull { return nil }
+				guard let value = value as? [String: Any] else {
+					throw SchemaViolationError(type: CartBuyerIdentity.self, field: fieldName, value: fieldValue)
+				}
+				return try PurchasingCompany(fields: value)
+
 				case "walletPreferences":
 				guard let value = value as? [String] else {
 					throw SchemaViolationError(type: CartBuyerIdentity.self, field: fieldName, value: fieldValue)
@@ -167,7 +184,7 @@ extension Storefront {
 			return field(field: "deliveryAddressPreferences", aliasSuffix: alias) as! [DeliveryAddress]
 		}
 
-		/// The email address of the buyer that is interacting with the cart. 
+		/// The email address of the buyer that's interacting with the cart. 
 		open var email: String? {
 			return internalGetEmail()
 		}
@@ -176,13 +193,22 @@ extension Storefront {
 			return field(field: "email", aliasSuffix: alias) as! String?
 		}
 
-		/// The phone number of the buyer that is interacting with the cart. 
+		/// The phone number of the buyer that's interacting with the cart. 
 		open var phone: String? {
 			return internalGetPhone()
 		}
 
 		func internalGetPhone(alias: String? = nil) -> String? {
 			return field(field: "phone", aliasSuffix: alias) as! String?
+		}
+
+		/// The purchasing company associated with the cart. 
+		open var purchasingCompany: Storefront.PurchasingCompany? {
+			return internalGetPurchasingCompany()
+		}
+
+		func internalGetPurchasingCompany(alias: String? = nil) -> Storefront.PurchasingCompany? {
+			return field(field: "purchasingCompany", aliasSuffix: alias) as! Storefront.PurchasingCompany?
 		}
 
 		/// A set of wallet preferences tied to the buyer that is interacting with the 
@@ -210,6 +236,12 @@ extension Storefront {
 					internalGetDeliveryAddressPreferences().forEach {
 						response.append(($0 as! GraphQL.AbstractResponse))
 						response.append(contentsOf: ($0 as! GraphQL.AbstractResponse).childResponseObjectMap())
+					}
+
+					case "purchasingCompany":
+					if let value = internalGetPurchasingCompany() {
+						response.append(value)
+						response.append(contentsOf: value.childResponseObjectMap())
 					}
 
 					default:
